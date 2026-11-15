@@ -1,0 +1,17 @@
+@import "tailwindcss";
+@theme inline {
+  --color-primary: #176b61;
+  --color-primary-foreground: #ffffff;
+  --color-border: #dce3e5;
+  --font-sans: "Segoe UI", Arial, sans-serif;
+}
+:root { font-family: var(--font-sans); color: #172c35; background: #f8faf9; font-synthesis: none; text-rendering: optimizeLegibility; -webkit-font-smoothing: antialiased; }
+button, a, input { -webkit-tap-highlight-color: transparent; }
+button { cursor: pointer; }
+button:disabled { cursor: default; }
+.field-label { display: block; margin-bottom: .6rem; font-size: .8rem; font-weight: 600; color: #334155; }
+.auth-grid { display: grid; grid-template-columns: 1fr 1fr; }
+.orbit { position: absolute; border: 1px solid #ffffff0b; border-radius: 50%; width: 700px; height: 700px; right: -430px; bottom: -170px; }
+.orbit-two { width: 880px; height: 880px; right: -520px; bottom: -260px; }
+@media (max-width: 900px) { .auth-grid { grid-template-columns: 1fr; } .auth-story { display: none; } }
+@media (prefers-reduced-motion: reduce) { *, *::before, *::after { transition-duration: 0.01ms !important; animation-duration: 0.01ms !important; } }

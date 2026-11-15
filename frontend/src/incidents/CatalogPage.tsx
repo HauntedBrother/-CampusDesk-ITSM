@@ -1,0 +1,27 @@
+import { useEffect, useState, type FormEvent } from 'react';
+import { useAuth } from '@/auth/AuthProvider';
+import { Button } from '@/components/ui/button';
+import { Input } from '@/components/ui/input';
+import { ErrorMessage, Field, Select, Textarea } from './components';
+import type { Category, Service } from './types';
+
+export function CatalogPage() {
+  const { request } = useAuth(); const [services, setServices] = useState<Service[]>([]); const [categories, setCategories] = useState<Category[]>([]);
+  const [editing, setEditing] = useState<{ kind: 'services' | 'categories'; value: Service | Category } | null>(null);
+  const [error, setError] = useState(''); const [notice, setNotice] = useState(''); const [loading, setLoading] = useState(true); const [busy, setBusy] = useState(false); const [attempt, setAttempt] = useState(0);
+  useEffect(() => { let active = true; setLoading(true); setError('');
+    Promise.all([request<Service[]>('/catalog/services?includeInactive=true'), request<Category[]>('/catalog/categories?includeInactive=true')]).then(([s, c]) => { if (active) { setServices(s); setCategories(c); } }).catch(e => { if (active) setError(e.message); }).finally(() => { if (active) setLoading(false); }); return () => { active = false; };
+  }, [request, attempt]);
+  async function save(kind: 'services' | 'categories', event: FormEvent<HTMLFormElement>) {
+    event.preventDefault(); const form = event.currentTarget; const values = Object.fromEntries(new FormData(form)); setBusy(true); setError(''); setNotice('');
+    const record = editing?.kind === kind ? editing.value : null;
+    try { await request(`/catalog/${kind}${record ? '/' + record.id : ''}`, { method: record ? 'PUT' : 'POST', body: JSON.stringify({ name: values.name, description: values.description, active: values.active === 'true', ...(kind === 'services' ? { businessCriticality: Number(values.businessCriticality) } : {}) }) }); form.reset(); setEditing(null); setAttempt(n => n + 1); setNotice('Catalog changes saved.'); }
+    catch (e) { setError(e instanceof Error ? e.message : 'Unable to save catalog entry'); } finally { setBusy(false); }
+  }
+  return <><p className="text-xs font-semibold uppercase tracking-widest text-teal-700">Administration</p><h1 className="mb-2 mt-2 text-3xl font-semibold tracking-tight">Services & categories</h1><p className="mb-7 text-sm text-slate-500">Configure the campus catalog. Deactivate retired entries to preserve incident history.</p><ErrorMessage error={error}/>{notice && <p role="status" className="my-4 text-sm text-teal-700">{notice}</p>}{loading ? <p role="status">Loading catalog…</p> : error && !services.length && !categories.length ? <Button variant="outline" onClick={() => setAttempt(n => n + 1)}>Retry</Button> : <div className="grid items-start gap-6 xl:grid-cols-2">{(['services', 'categories'] as const).map(kind => {
+    const entry = editing?.kind === kind ? editing.value : null; const items = kind === 'services' ? services : categories;
+    return <section key={kind} className="rounded-xl border border-slate-200 bg-white p-6"><h2 className="mb-5 font-semibold">{kind === 'services' ? 'IT services' : 'Incident categories'}</h2><ul className="mb-7 divide-y divide-slate-100">{!items.length && <li className="py-4 text-sm text-slate-400">No entries yet. Create the first one below.</li>}{items.map(item => <li key={item.id} className="flex items-start justify-between gap-3 py-4"><div><p className="break-words text-sm font-medium">{item.name}</p><p className="mt-1 break-words text-xs leading-5 text-slate-500">{item.description}</p><span className={`mt-2 inline-block text-[10px] font-semibold uppercase ${item.active ? 'text-teal-700' : 'text-slate-400'}`}>{item.active ? 'Active' : 'Inactive'}{'businessCriticality' in item ? ` · Criticality ${item.businessCriticality}/3` : ''}</span></div><Button size="sm" variant="outline" onClick={() => { setEditing({ kind, value: item }); setError(''); }}>Edit</Button></li>)}</ul>
+      <form key={entry?.id ?? 'new'} className="space-y-4 border-t border-slate-100 pt-5" onSubmit={event => save(kind, event)}><h3 className="text-sm font-semibold">{entry ? `Edit ${entry.name}` : `Add ${kind === 'services' ? 'service' : 'category'}`}</h3><Field title="Name" htmlFor={`${kind}-name`}><Input id={`${kind}-name`} name="name" maxLength={100} required defaultValue={entry?.name}/></Field><Field title="Description" htmlFor={`${kind}-description`}><Textarea id={`${kind}-description`} name="description" maxLength={1000} defaultValue={entry?.description ?? ''}/></Field>{kind === 'services' && <Field title="Business criticality" htmlFor="criticality"><Select id="criticality" name="businessCriticality" defaultValue={entry && 'businessCriticality' in entry ? Number(entry.businessCriticality) : 1}>{[1, 2, 3].map(n => <option value={n} key={n}>{n} — {n === 1 ? 'Low' : n === 2 ? 'Medium' : 'High'}</option>)}</Select></Field>}<Field title="Availability" htmlFor={`${kind}-active`}><Select id={`${kind}-active`} name="active" defaultValue={entry?.active === false ? 'false' : 'true'}><option value="true">Active</option><option value="false">Inactive</option></Select></Field><div className="flex gap-3"><Button size="sm" disabled={busy}>{busy ? 'Saving…' : entry ? 'Save changes' : 'Create entry'}</Button>{entry && <Button type="button" size="sm" variant="outline" onClick={() => setEditing(null)}>Cancel</Button>}</div></form>
+    </section>;
+  })}</div>}</>;
+}

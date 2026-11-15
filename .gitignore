@@ -1,0 +1,8 @@
+.env
+.tmp/
+node_modules/
+dist/
+target/
+*.tsbuildinfo
+*.log
+.idea/

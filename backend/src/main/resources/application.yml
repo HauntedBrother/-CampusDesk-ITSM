@@ -1,0 +1,17 @@
+spring:
+  datasource:
+    url: ${DATABASE_URL:jdbc:postgresql://localhost:5432/itsm}
+    username: ${POSTGRES_USER:itsm}
+    password: ${POSTGRES_PASSWORD}
+  jpa:
+    open-in-view: false
+    hibernate:
+      ddl-auto: validate
+  flyway:
+    enabled: true
+server:
+  error:
+    include-message: never
+app:
+  jwt-secret: ${JWT_SECRET}
+  token-ttl: PT1H
