@@ -190,10 +190,4 @@ Metric definitions:
 
 Aggregations run in dedicated reporting services/repositories and return projections rather than hydrating incident collections. Workload uses grouped SQL and report tables paginate in PostgreSQL. Incident list DTOs fetch their four to-one relationships in one entity graph; the integration test verifies a full paginated fetch takes exactly two statements (data + count). V5 adds reporting functions/indexes without modifying existing data or Docker volumes. No chart dependency or external analytics service is required.
 
-## Agreed rules for later phases
 
-Historical resolution recommendations remain optional later work.
-
-Final deliverables will use academic year 2026–2027 and the actual group number. The PDF specifies submission by 22 November 2026, including the report, diagrams, documented tests and a 15–20 minute group demonstration with at least three complete workflows.
-
-Technology compatibility references: [Spring Boot 3.5 requirements](https://docs.spring.io/spring-boot/3.5/system-requirements.html), [Vite guide](https://vite.dev/guide/).
